@@ -1,1 +1,1 @@
-gcc *.c -l ncurses
+# gcc *.c -l ncurses
