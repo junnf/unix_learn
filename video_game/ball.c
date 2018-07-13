@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <ncurses.h>
 #include <signal.h>
+#include <sys/time.h>
 
 #define ROW 10
 #define RIGHTEDGE 30
@@ -10,6 +11,11 @@ char *message = "hello";
 char *blank = "     ";
 int pos =LEFTEDGE;
 int dir = +1;
+
+struct itimeval {
+    struct timeval it_value;
+    struct timeval it_interval;
+};
 
 int main(void){
     initscr();
