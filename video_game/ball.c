@@ -1,55 +1,159 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <ncurses.h>
 #include <signal.h>
 #include <sys/time.h>
 
-#define ROW 10
-#define RIGHTEDGE 30
-#define LEFTEDGE 10
 
-char *message = "hello";
-char *blank = "     ";
-int pos =LEFTEDGE;
-int dir = +1;
+#define ROW              30
+#define RIGHTEDGE        70
+#define LEFTEDGE         10
+#define MID              ((LEFTEDGE + RIGHTEDGE)/2)
+#define BAR              "|_____|"
+#define MEDIUM_BAR       "|__________|"
+
+#define BALL             "O"
+#define BAR_CLEAR        "       "
+#define BALL_CLEAR       " "
+
+/* lose */
+#define FALL            0
+
+typedef struct ball{
+
+    int pre_x;
+    int pre_y;
+    int cur_x;
+    int cur_y;
+    char symbol;
+};
 
 struct itimeval {
     struct timeval it_value;
     struct timeval it_interval;
 };
 
-int main(void){
-    initscr();
-    clear();
+int pos_x = 0, pos_y = 0;
 
-    while (1) {
-        move(ROW, pos);
-        addstr(message);
-        move(LINES - 1, COLS - 1);
-        refresh();
-        sleep(1);
-        move(ROW,pos);
-        addstr(blank);
-        pos += dir;
-        if(pos >= RIGHTEDGE)
-            dir = -1;
-        if(pos <= LEFTEDGE)
-            dir = +1;
+struct ball i_ball;
+
+int set_ticker(int n_ms){
+    struct itimeval new_timeset;
+    long ns, nus;
+    ns = n_ms / 1000;
+    nus = (n_ms % 1000) * 1000L;
+    new_timeset.it_interval.tv_sec = ns;
+    new_timeset.it_interval.tv_usec = nus;
+    new_timeset.it_value.tv_sec = ns;
+    new_timeset.it_value.tv_usec = nus;
+
+    return setitimer(ITIMER_REAL, &new_timeset, NULL);
+}
+
+void ball_move(){
+    /* init ball move */
+    mvaddch(i_ball.cur_y+1, i_ball.cur_x-1,' ');
+    mvaddch(i_ball.cur_y, i_ball.cur_x,'O');
+    /* addstr(BALL_CLEAR); */
+    /* addstr(BALL_CLEAR); */
+    /* move(i_ball.cur_y,i_ball.cur_x); */
+    /* i_ball.pre_x = i_ball.cur_x; */
+    /* i_ball.pre_y = i_ball.cur_y; */
+    i_ball.cur_y--;
+    i_ball.cur_x++;
+    /* move(1,1); */
+    /* addstr(BALL); */
+    refresh();
+}
+
+void bar_move_left(){
+
+    //clear position
+    if(pos_x <= LEFTEDGE)
+        return;
+    move(pos_y, pos_x + 1);
+    addstr(BAR_CLEAR);
+    move(pos_y, pos_x - 1);
+    addstr(BAR);
+        /* addstr(" "); */
+    refresh();
+    pos_x -= 1;
+}
+
+void bar_move_right(){
+    //clear position
+    if(pos_x >= RIGHTEDGE)
+        return;
+    move(pos_y, pos_x - 1);
+    addstr(BAR_CLEAR);
+    move(pos_y, pos_x + 1);
+    addstr(BAR);
+        /* addstr(" "); */
+    refresh();
+    pos_x += 1;
+}
+
+int ball_position(int position_x){
+
+    return (position_x + 3);
+}
+
+char lose(int bar_position, int ball_position){
+
+    if(ball_position < bar_position){
+        return (bar_position > ball_position? FALL : 1);
+    }
+    else{
+        if ((ball_position - bar_position) > 7 )
+            return FALL;
+        else
+            return 1;
+    }
+}
+
+int ball_judge(){
+    if (i_ball.cur_y == 0) {
+        exit(0);
     }
 
-   /*  int i; */
-    /* initscr(); */
-    /* clear(); */
-    /* for (i = 0; i < LINES; i++) { */
-       /* move(i, i+1) ; */
-       /* if(i%2 == 1) */
-           /* standout(); */
-       /* addstr("Hello world"); */
-       /* if(i % 2 == 1) */
-           /* standend(); */
-       /* refresh(); */
-       /* sleep(1); */
-       /* move(i,i+1); */
-       /* addstr("                  "); */
-    /* } */
-    /* endwin(); */
+}
+
+int main(void){
+    char c ;
+    i_ball.pre_x = MID + 3;
+    i_ball.pre_y = ROW - 1;
+    i_ball.cur_x = MID + 3;
+    i_ball.cur_y = ROW - 2;
+
+    initscr();
+    int xx = 10;
+    WINDOW* win = newwin(xx,xx,xx,xx);
+    box(win, 10, 10);
+    clear();
+
+
+    move(ROW, MID);
+    pos_y = ROW, pos_x = MID;
+    addstr(BAR);
+    refresh();
+    noecho();
+    crmode();
+
+    signal(SIGALRM, ball_judge);
+    set_ticker(100);
+    signal(SIGALRM, ball_move);
+    set_ticker(100);
+
+    while (1) {
+        c = getch();
+        if(c == 'h')
+            bar_move_left();
+        else if (c == 'l') {
+            bar_move_right();
+        } else {
+            //TODO
+            addstr(" ");
+        }
+   }
+
 }
