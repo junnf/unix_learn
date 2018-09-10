@@ -50,6 +50,19 @@ int set_ticker(int n_ms){
     return setitimer(ITIMER_REAL, &new_timeset, NULL);
 }
 
+int set_ticker_border_test(int n_ms){
+    struct itimeval new_timeset;
+    long ns, nus;
+    ns = n_ms / 1000;
+    nus = (n_ms % 1000) * 1000L;
+    new_timeset.it_interval.tv_sec = ns;
+    new_timeset.it_interval.tv_usec = nus;
+    new_timeset.it_value.tv_sec = ns;
+    new_timeset.it_value.tv_usec = nus;
+
+    return setitimer(ITIMER_REAL, &new_timeset, NULL);
+}
+
 void ball_move(){
     /* init ball move */
     mvaddch(i_ball.cur_y+1, i_ball.cur_x-1,' ');
@@ -112,10 +125,8 @@ char lose(int bar_position, int ball_position){
 }
 
 int ball_judge(){
-    if (i_ball.cur_y == 0) {
-        exit(0);
-    }
 
+    exit(0);
 }
 
 int main(void){
@@ -140,7 +151,8 @@ int main(void){
     crmode();
 
     signal(SIGALRM, ball_judge);
-    set_ticker(100);
+    set_ticker_border_test(100);
+
     signal(SIGALRM, ball_move);
     set_ticker(100);
 
