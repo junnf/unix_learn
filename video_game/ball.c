@@ -36,6 +36,7 @@ struct itimeval {
 int pos_x = 0, pos_y = 0;
 
 struct ball i_ball;
+int doo = 1;
 
 int set_ticker(int n_ms){
     struct itimeval new_timeset;
@@ -65,18 +66,24 @@ int set_ticker_border_test(int n_ms){
 
 void ball_move(){
     /* init ball move */
-    mvaddch(i_ball.cur_y+1, i_ball.cur_x-1,' ');
-    mvaddch(i_ball.cur_y, i_ball.cur_x,'O');
-    /* addstr(BALL_CLEAR); */
-    /* addstr(BALL_CLEAR); */
-    /* move(i_ball.cur_y,i_ball.cur_x); */
-    /* i_ball.pre_x = i_ball.cur_x; */
-    /* i_ball.pre_y = i_ball.cur_y; */
-    i_ball.cur_y--;
-    i_ball.cur_x++;
-    /* move(1,1); */
-    /* addstr(BALL); */
-    refresh();
+    if (i_ball.cur_y == 1) {
+        mvaddch(i_ball.cur_y+1, i_ball.cur_x-1,' ');
+        doo = 2;
+    }
+    if(doo == 1){
+        mvaddch(i_ball.cur_y+1, i_ball.cur_x-1,' ');
+        mvaddch(i_ball.cur_y, i_ball.cur_x,'O');
+        i_ball.cur_y--;
+        i_ball.cur_x++;
+        refresh();
+    }
+    if(doo == 2){
+        mvaddch(i_ball.cur_y-1, i_ball.cur_x-1,' ');
+        mvaddch(i_ball.cur_y, i_ball.cur_x,'O');
+        i_ball.cur_y++;
+        i_ball.cur_x++;
+        refresh();
+    }
 }
 
 void bar_move_left(){
@@ -107,7 +114,6 @@ void bar_move_right(){
 }
 
 int ball_position(int position_x){
-
     return (position_x + 3);
 }
 
@@ -124,12 +130,8 @@ char lose(int bar_position, int ball_position){
     }
 }
 
-int ball_judge(){
-
-    exit(0);
-}
-
 int main(void){
+
     char c ;
     i_ball.pre_x = MID + 3;
     i_ball.pre_y = ROW - 1;
@@ -137,11 +139,7 @@ int main(void){
     i_ball.cur_y = ROW - 2;
 
     initscr();
-    int xx = 10;
-    WINDOW* win = newwin(xx,xx,xx,xx);
-    box(win, 10, 10);
     clear();
-
 
     move(ROW, MID);
     pos_y = ROW, pos_x = MID;
@@ -149,9 +147,6 @@ int main(void){
     refresh();
     noecho();
     crmode();
-
-    signal(SIGALRM, ball_judge);
-    set_ticker_border_test(100);
 
     signal(SIGALRM, ball_move);
     set_ticker(100);
@@ -163,9 +158,7 @@ int main(void){
         else if (c == 'l') {
             bar_move_right();
         } else {
-            //TODO
             addstr(" ");
         }
    }
-
 }
